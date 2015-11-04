@@ -12,5 +12,8 @@ public class JukeOxPlayer {
 	public static void main(String[] args) {
 
 		LOGGER.info("JukeOx Player started!");
+
+
+		LOGGER.info("JukeOx Player stopped.");
 	}
 }
