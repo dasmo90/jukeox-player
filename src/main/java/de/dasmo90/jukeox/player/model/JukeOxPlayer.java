@@ -3,12 +3,22 @@ package de.dasmo90.jukeox.player.model;
 import org.apache.log4j.Logger;
 
 /**
- * Created by dasmo90 on 04.11.2015.
+ * Main class of the JukeOx Player application.
+ *
+ * @author dasmo90
  */
 public class JukeOxPlayer {
 
+	/**
+	 * Logger for the Main class.
+	 */
 	private static final Logger LOGGER = Logger.getLogger(JukeOxPlayer.class);
 
+	/**
+	 * Point of entry.
+	 *
+	 * @param args program arguments
+	 */
 	public static void main(String[] args) {
 
 		LOGGER.info("JukeOx Player started!");

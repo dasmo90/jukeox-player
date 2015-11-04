@@ -1,7 +1,9 @@
 package de.dasmo90.jukeox.player.model;
 
 /**
- * Created by dasmo90 on 04.11.2015.
+ * Tests for Main class of the JukeOx Player application.
+ *
+ * @author dasmo90
  */
 public class JukeOxPlayerTest {
 
