@@ -8,6 +8,7 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
+import javafx.stage.Stage;
 import org.apache.log4j.Logger;
 
 import java.io.File;
@@ -20,9 +21,19 @@ public class AudioPlayerImpl implements AudioPlayer {
 
 	private static final Logger LOGGER = Logger.getLogger(AudioPlayerImpl.class);
 
+	private boolean initialized = false;
+
+	private Initializer initializer;
+
 	private Playlist activePlaylist;
 
 	public static AudioPlayer getInstance() {
+
+		if(!INSTANCE.initialized) {
+
+			throw new RuntimeException(
+					"Audio player not initialized. Please call \"initialize\" and wait for the callback.");
+		}
 
 		return INSTANCE;
 	}
@@ -31,7 +42,14 @@ public class AudioPlayerImpl implements AudioPlayer {
 
 	}
 
-	private static AudioPlayer INSTANCE = new AudioPlayerImpl();
+	public static void initialize(Initializer initializer) {
+
+		INSTANCE.initializer = initializer;
+
+		Application.launch(AudioPlayerImpl.JavaFXInitializer.class);
+	}
+
+	private static AudioPlayerImpl INSTANCE = new AudioPlayerImpl();
 
 	MediaPlayer mediaPlayer;
 
@@ -43,10 +61,14 @@ public class AudioPlayerImpl implements AudioPlayer {
 
 		try {
 
-			Media hit = new Media(soundFile.toURI().toURL().toString());
+			String mediaUrl = soundFile.toURI().toURL().toString();
+			Media hit = new Media(mediaUrl);
 			mediaPlayer = new MediaPlayer(hit);
+
+			LOGGER.info("Playing \""+mediaUrl+"\".");
 			mediaPlayer.play();
 
+			// Register callbacks.
 			mediaPlayer.setOnStopped(() -> {
 				LOGGER.info("Stopped");
 			});
@@ -71,7 +93,7 @@ public class AudioPlayerImpl implements AudioPlayer {
 
 		} catch (MalformedURLException e) {
 
-			LOGGER.error(e.getMessage(), e);
+			throw new AudioPlayerException(e);
 		}
 	}
 
@@ -86,5 +108,33 @@ public class AudioPlayerImpl implements AudioPlayer {
 
 	public void stop() {
 
+	}
+
+	public static class JavaFXInitializer extends Application {
+
+		@Override
+		public void init() throws Exception {
+
+			super.init();
+		}
+
+		@Override
+		public void stop() throws Exception {
+
+			super.stop();
+		}
+
+		@Override
+		public void start(Stage primaryStage) throws Exception {
+
+			INSTANCE.initialized = true;
+
+			INSTANCE.initializer.onInitialized();
+		}
+	}
+
+	public interface Initializer {
+
+		void onInitialized();
 	}
 }

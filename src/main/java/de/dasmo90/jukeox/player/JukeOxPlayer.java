@@ -18,9 +18,21 @@ import java.io.File;
  */
 public class JukeOxPlayer {
 
-	public static void onInitialized(Stage stage) {
+	/**
+	 * Logger for the Main class.
+	 */
+	private static final Logger LOGGER = Logger.getLogger(JukeOxPlayer.class);
 
-		new Thread(() -> {
+	/**
+	 * Point of entry.
+	 *
+	 * @param args program arguments
+	 */
+	public static void main(String[] args) {
+
+		LOGGER.info("JukeOx Player started!");
+
+		AudioPlayerImpl.initialize(() -> {
 
 			Playlist playlist = new Playlist() {
 
@@ -38,6 +50,7 @@ public class JukeOxPlayer {
 			AudioPlayerImpl.getInstance().setPlaylist(playlist);
 
 			try {
+
 				AudioPlayerImpl.getInstance().play();
 
 			} catch (AudioPlayerException e) {
@@ -45,25 +58,7 @@ public class JukeOxPlayer {
 				LOGGER.error("Error in main method.", e);
 			}
 
-		}).start();
-
-	}
-
-	/**
-	 * Logger for the Main class.
-	 */
-	private static final Logger LOGGER = Logger.getLogger(JukeOxPlayer.class);
-
-	/**
-	 * Point of entry.
-	 *
-	 * @param args program arguments
-	 */
-	public static void main(String[] args) {
-
-		LOGGER.info("JukeOx Player started!");
-
-		Application.launch(JavaFXInitializer.class);
+		});
 
 		LOGGER.info("JukeOx Player stopped.");
 	}
