@@ -1,6 +1,15 @@
 package de.dasmo90.jukeox.player;
 
+import de.dasmo90.jukeox.player.model.api.AudioPlayer;
+import de.dasmo90.jukeox.player.model.api.Playlist;
+import de.dasmo90.jukeox.player.model.api.Song;
+import de.dasmo90.jukeox.player.model.exception.AudioPlayerException;
+import de.dasmo90.jukeox.player.model.impl.AudioPlayerImpl;
+import javafx.application.Application;
+import javafx.stage.Stage;
 import org.apache.log4j.Logger;
+
+import java.io.File;
 
 /**
  * Main class of the JukeOx Player application.
@@ -8,6 +17,37 @@ import org.apache.log4j.Logger;
  * @author dasmo90
  */
 public class JukeOxPlayer {
+
+	public static void onInitialized(Stage stage) {
+
+		new Thread(() -> {
+
+			Playlist playlist = new Playlist() {
+
+				@Override
+				public void addSong(Song song) {
+
+				}
+
+				@Override
+				public Song getPlayedSong() throws AudioPlayerException {
+					return () -> new File("src\\main\\resources\\test.mp3");
+				}
+			};
+
+			AudioPlayerImpl.getInstance().setPlaylist(playlist);
+
+			try {
+				AudioPlayerImpl.getInstance().play();
+
+			} catch (AudioPlayerException e) {
+
+				LOGGER.error("Error in main method.", e);
+			}
+
+		}).start();
+
+	}
 
 	/**
 	 * Logger for the Main class.
@@ -23,6 +63,7 @@ public class JukeOxPlayer {
 
 		LOGGER.info("JukeOx Player started!");
 
+		Application.launch(JavaFXInitializer.class);
 
 		LOGGER.info("JukeOx Player stopped.");
 	}
