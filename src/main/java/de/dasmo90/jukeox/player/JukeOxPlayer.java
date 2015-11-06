@@ -1,4 +1,4 @@
-package de.dasmo90.jukeox.player.model;
+package de.dasmo90.jukeox.player;
 
 import org.apache.log4j.Logger;
 
