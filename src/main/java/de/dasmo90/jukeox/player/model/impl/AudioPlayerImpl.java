@@ -1,63 +1,65 @@
 package de.dasmo90.jukeox.player.model.impl;
 
 import de.dasmo90.jukeox.player.model.api.AudioPlayer;
+import de.dasmo90.jukeox.player.model.api.AudioPlayerListener;
 import de.dasmo90.jukeox.player.model.api.Playlist;
 import de.dasmo90.jukeox.player.model.api.Song;
 import de.dasmo90.jukeox.player.model.exception.AudioPlayerException;
-import javafx.application.Application;
-import javafx.application.Platform;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
-import javafx.stage.Stage;
-import org.apache.log4j.Logger;
 
 import java.io.File;
 import java.net.MalformedURLException;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author dasmo90
  */
-public class AudioPlayerImpl implements AudioPlayer {
-
-	private static final Logger LOGGER = Logger.getLogger(AudioPlayerImpl.class);
+public final class AudioPlayerImpl implements AudioPlayer {
 
 	private boolean initialized = false;
 
-	private Initializer initializer;
+	private Song currentlyPlayedSong;
+
+	private Set<AudioPlayerListener> audioPlayerListeners;
+
+	AudioPlayerImpl() {
+
+		audioPlayerListeners = new HashSet<>();
+	}
 
 	private Playlist activePlaylist;
 
-	public static AudioPlayer getInstance() {
+	private MediaPlayer mediaPlayer;
 
-		if(!INSTANCE.initialized) {
+	boolean isInitialized() {
 
-			throw new RuntimeException(
-					"Audio player not initialized. Please call \"initialize\" and wait for the callback.");
+		return initialized;
+	}
+
+	void setInitialized(boolean initialized) {
+
+		this.initialized = initialized;
+	}
+
+	private void checkInitialized() throws AudioPlayerException {
+
+		if(!initialized) {
+
+			throw new AudioPlayerException(
+					"Audio player not initialized. " +
+							"Please call \"AudioPlayerProvider.initialize\" and wait for the callback.");
 		}
-
-		return INSTANCE;
 	}
-
-	private AudioPlayerImpl() {
-
-	}
-
-	public static void initialize(Initializer initializer) {
-
-		INSTANCE.initializer = initializer;
-
-		Application.launch(AudioPlayerImpl.JavaFXInitializer.class);
-	}
-
-	private static AudioPlayerImpl INSTANCE = new AudioPlayerImpl();
-
-	MediaPlayer mediaPlayer;
 
 	public void play() throws AudioPlayerException {
 
-		Song song = activePlaylist.getPlayedSong();
+		checkInitialized();
 
-		File soundFile = song.getFile();
+		currentlyPlayedSong = activePlaylist.getPlayedSong();
+
+		File soundFile = currentlyPlayedSong.getFile();
 
 		try {
 
@@ -65,31 +67,56 @@ public class AudioPlayerImpl implements AudioPlayer {
 			Media hit = new Media(mediaUrl);
 			mediaPlayer = new MediaPlayer(hit);
 
-			LOGGER.info("Playing \""+mediaUrl+"\".");
-			mediaPlayer.play();
-
 			// Register callbacks.
+			mediaPlayer.setOnPlaying(() -> {
+
+				for(AudioPlayerListener audioPlayerListener : audioPlayerListeners) {
+
+					audioPlayerListener.onStarted(currentlyPlayedSong);
+				}
+			});
+
 			mediaPlayer.setOnStopped(() -> {
-				LOGGER.info("Stopped");
+
+				for(AudioPlayerListener audioPlayerListener : audioPlayerListeners) {
+
+					audioPlayerListener.onStopped(currentlyPlayedSong);
+				}
 			});
 
 			mediaPlayer.setOnHalted(() -> {
-				LOGGER.info("Halted");
+
+				for(AudioPlayerListener audioPlayerListener : audioPlayerListeners) {
+
+					audioPlayerListener.onHalted(currentlyPlayedSong);
+				}
 			});
 
 			mediaPlayer.setOnPaused(() -> {
-				LOGGER.info("Paused");
+
+				for(AudioPlayerListener audioPlayerListener : audioPlayerListeners) {
+
+					audioPlayerListener.onPaused(currentlyPlayedSong);
+				}
 			});
 
 			mediaPlayer.setOnError(() -> {
-				LOGGER.error("Error");
+
+				for(AudioPlayerListener audioPlayerListener : audioPlayerListeners) {
+
+					audioPlayerListener.onError(currentlyPlayedSong);
+				}
 			});
 
 			mediaPlayer.setOnEndOfMedia(() -> {
-				LOGGER.info("End of Media.");
 
-				Platform.exit();
+				for(AudioPlayerListener audioPlayerListener : audioPlayerListeners) {
+
+					audioPlayerListener.onSongEnded(currentlyPlayedSong);
+				}
 			});
+
+			mediaPlayer.play();
 
 		} catch (MalformedURLException e) {
 
@@ -102,39 +129,31 @@ public class AudioPlayerImpl implements AudioPlayer {
 		activePlaylist = playlist;
 	}
 
-	public void pause() {
+	@Override
+	public void addAudioPlayerListener(AudioPlayerListener audioPlayerListener) {
 
+		audioPlayerListeners.add(audioPlayerListener);
 	}
 
-	public void stop() {
+	@Override
+	public void removeAudioPlayerListener(AudioPlayerListener audioPlayerListener) {
 
+		audioPlayerListeners.remove(audioPlayerListener);
 	}
 
-	public static class JavaFXInitializer extends Application {
+	public void pause() throws AudioPlayerException {
 
-		@Override
-		public void init() throws Exception {
+		checkInitialized();
 
-			super.init();
-		}
-
-		@Override
-		public void stop() throws Exception {
-
-			super.stop();
-		}
-
-		@Override
-		public void start(Stage primaryStage) throws Exception {
-
-			INSTANCE.initialized = true;
-
-			INSTANCE.initializer.onInitialized();
-		}
+		mediaPlayer.pause();
 	}
 
-	public interface Initializer {
+	public void stop() throws AudioPlayerException {
 
-		void onInitialized();
+		checkInitialized();
+
+		mediaPlayer.stop();
 	}
+
+
 }

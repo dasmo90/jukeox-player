@@ -9,10 +9,13 @@ public interface AudioPlayer {
 
 	void play() throws AudioPlayerException;
 
+	void pause() throws AudioPlayerException;
+
+	void stop() throws AudioPlayerException;
+
 	void setPlaylist(Playlist playlist);
 
-	void pause();
+	void addAudioPlayerListener(AudioPlayerListener audioPlayerListener);
 
-	void stop();
-
+	void removeAudioPlayerListener(AudioPlayerListener audioPlayerListener);
 }
