@@ -85,7 +85,11 @@ public class JukeOxPlayer {
 
 				@Override
 				public Song getPlayedSong() throws AudioPlayerException {
-					return () -> new File("src\\main\\resources\\test.mp3");
+					return () -> new File(
+							"src" + File.separator +
+							"main" + File.separator +
+							"resources" + File.separator +
+							"test.mp3");
 				}
 			};
 
