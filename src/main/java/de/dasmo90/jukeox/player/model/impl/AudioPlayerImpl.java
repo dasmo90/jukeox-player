@@ -7,6 +7,7 @@ import de.dasmo90.jukeox.player.model.api.Song;
 import de.dasmo90.jukeox.player.model.exception.AudioPlayerException;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
+import org.apache.log4j.Logger;
 
 import java.io.File;
 import java.net.MalformedURLException;
@@ -16,7 +17,9 @@ import java.util.Set;
 /**
  * @author dasmo90
  */
-public final class AudioPlayerImpl implements AudioPlayer {
+public final class AudioPlayerImpl implements AudioPlayer, AudioPlayerListener {
+
+	private static final Logger LOGGER = Logger.getLogger(AudioPlayerImpl.class);
 
 	private boolean initialized = false;
 
@@ -27,6 +30,7 @@ public final class AudioPlayerImpl implements AudioPlayer {
 	AudioPlayerImpl() {
 
 		audioPlayerListeners = new HashSet<>();
+		audioPlayerListeners.add(this);
 	}
 
 	private Playlist activePlaylist;
@@ -57,7 +61,17 @@ public final class AudioPlayerImpl implements AudioPlayer {
 
 		checkInitialized();
 
-		currentlyPlayedSong = activePlaylist.getPlayedSong();
+		currentlyPlayedSong = activePlaylist.getNextSong();
+
+		if(currentlyPlayedSong == null) {
+
+			for(AudioPlayerListener audioPlayerListener : audioPlayerListeners) {
+
+				audioPlayerListener.onPlaylistEnded();
+			}
+
+			return;
+		}
 
 		File soundFile = currentlyPlayedSong.getFile();
 
@@ -156,4 +170,52 @@ public final class AudioPlayerImpl implements AudioPlayer {
 	}
 
 
+	@Override
+	public void onPlaylistEnded() {
+
+		LOGGER.info("Playlist ended.");
+	}
+
+	@Override
+	public void onStarted(Song song) {
+
+		LOGGER.info("Playing \""+song.getFile().getAbsolutePath()+"\"");
+	}
+
+	@Override
+	public void onStopped(Song song) {
+
+		LOGGER.info("Stopped \""+song.getFile().getAbsolutePath()+"\"");
+	}
+
+	@Override
+	public void onPaused(Song song) {
+
+		LOGGER.info("Paused \""+song.getFile().getAbsolutePath()+"\"");
+	}
+
+	@Override
+	public void onHalted(Song song) {
+
+		LOGGER.info("Halted \""+song.getFile().getAbsolutePath()+"\"");
+	}
+
+	@Override
+	public void onError(Song song) {
+
+		LOGGER.error("Error playing \"" + song.getFile().getAbsolutePath() + "\"");
+	}
+
+	@Override
+	public void onSongEnded(Song song) {
+
+		try {
+
+			play();
+
+		} catch (AudioPlayerException e) {
+
+			LOGGER.error("Error playing next song.", e);
+		}
+	}
 }

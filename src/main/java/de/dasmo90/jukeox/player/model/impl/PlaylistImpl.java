@@ -14,18 +14,20 @@ public class PlaylistImpl implements Playlist {
 
 	private List<Song> songs = new ArrayList<>();
 
+	private int currentIndex = 0;
+
 	public void addSong(Song song) {
 
 		songs.add(song);
 	}
 
 	@Override
-	public Song getPlayedSong() throws AudioPlayerException {
+	public Song getNextSong() throws AudioPlayerException {
 
-		if(songs.isEmpty()) {
+		if(currentIndex < songs.size()) {
 
-			throw new AudioPlayerException("Playlist is empty");
+			return null;
 		}
-		return songs.get(0);
+		return songs.get(currentIndex++);
 	}
 }

@@ -1,11 +1,12 @@
 package de.dasmo90.jukeox.player;
 
 import de.dasmo90.jukeox.player.model.api.AudioPlayer;
-import de.dasmo90.jukeox.player.model.api.AudioPlayerListener;
 import de.dasmo90.jukeox.player.model.api.Playlist;
 import de.dasmo90.jukeox.player.model.api.Song;
 import de.dasmo90.jukeox.player.model.exception.AudioPlayerException;
+import de.dasmo90.jukeox.player.model.impl.AudioPlayerCallback;
 import de.dasmo90.jukeox.player.model.impl.AudioPlayerProvider;
+import de.dasmo90.jukeox.player.model.impl.PlaylistImpl;
 import org.apache.log4j.Logger;
 
 import java.io.File;
@@ -25,45 +26,14 @@ public class JukeOxPlayer {
 	/**
 	 * A test audio player instance.
 	 */
-	private static AudioPlayer AUDIO_PLAYER = AudioPlayerProvider.getAudioPlayerInstance(new AudioPlayerListener() {
-
-		@Override
-		public void onStarted(Song song) {
-
-			LOGGER.info("Playing \""+song.getFile().getAbsolutePath()+"\"");
-		}
-
-		@Override
-		public void onStopped(Song song) {
-
-			LOGGER.info("Stopped \""+song.getFile().getAbsolutePath()+"\"");
-		}
-
-		@Override
-		public void onPaused(Song song) {
-
-			LOGGER.info("Paused \""+song.getFile().getAbsolutePath()+"\"");
-		}
-
-		@Override
-		public void onHalted(Song song) {
-
-			LOGGER.info("Halted \""+song.getFile().getAbsolutePath()+"\"");
-		}
-
-		@Override
-		public void onError(Song song) {
-
-			LOGGER.error("Error playing \"" + song.getFile().getAbsolutePath() + "\"");
-		}
+	private static AudioPlayer AUDIO_PLAYER = AudioPlayerProvider.getAudioPlayerInstance(new AudioPlayerCallback() {
 
 		@Override
 		public void onSongEnded(Song song) {
 
-			LOGGER.info("Song ended: \""+song.getFile().getAbsolutePath()+"\"");
-
 			AudioPlayerProvider.shutdown();
 		}
+
 	});
 	/**
 	 * Point of entry.
@@ -76,24 +46,17 @@ public class JukeOxPlayer {
 
 		AudioPlayerProvider.initialize(() -> {
 
-			Playlist playlist = new Playlist() {
+			AUDIO_PLAYER.setPlaylist(new PlaylistImpl() {
 
 				@Override
-				public void addSong(Song song) {
-
-				}
-
-				@Override
-				public Song getPlayedSong() throws AudioPlayerException {
+				public Song getNextSong() throws AudioPlayerException {
 					return () -> new File(
 							"src" + File.separator +
-							"main" + File.separator +
-							"resources" + File.separator +
-							"test.mp3");
+									"main" + File.separator +
+									"resources" + File.separator +
+									"test.mp3");
 				}
-			};
-
-			AUDIO_PLAYER.setPlaylist(playlist);
+			});
 
 			try {
 

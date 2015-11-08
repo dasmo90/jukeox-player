@@ -48,6 +48,7 @@ public class AudioPlayerProvider {
 
 			initializing = true;
 		}
+
 		AudioPlayerProvider.initializer = initializer;
 
 		Application.launch(AudioPlayerProvider.JavaFXInitializer.class);

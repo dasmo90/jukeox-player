@@ -16,4 +16,6 @@ public interface AudioPlayerListener {
 	void onError(Song song);
 
 	void onSongEnded(Song song);
+
+	void onPlaylistEnded();
 }

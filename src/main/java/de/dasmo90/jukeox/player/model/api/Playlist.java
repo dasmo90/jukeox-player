@@ -9,5 +9,6 @@ public interface Playlist {
 
 	void addSong(Song song);
 
-	Song getPlayedSong() throws AudioPlayerException;
+	Song getNextSong() throws AudioPlayerException;
+
 }
