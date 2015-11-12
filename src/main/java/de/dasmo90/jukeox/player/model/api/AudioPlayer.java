@@ -18,4 +18,10 @@ public interface AudioPlayer {
 	void addAudioPlayerListener(AudioPlayerListener audioPlayerListener);
 
 	void removeAudioPlayerListener(AudioPlayerListener audioPlayerListener);
+
+	State getState();
+
+	enum State {
+		PLAYING, PAUSED, STOPPED
+	}
 }

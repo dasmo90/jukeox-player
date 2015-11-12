@@ -21,7 +21,9 @@ public final class AudioPlayerImpl implements AudioPlayer, AudioPlayerListener {
 
 	private static final Logger LOGGER = Logger.getLogger(AudioPlayerImpl.class);
 
-	private boolean initialized = false;
+	private volatile boolean initialized = false;
+
+	private State state = null;
 
 	private Song currentlyPlayedSong;
 
@@ -57,9 +59,16 @@ public final class AudioPlayerImpl implements AudioPlayer, AudioPlayerListener {
 		}
 	}
 
-	public void play() throws AudioPlayerException {
+	public synchronized void play() throws AudioPlayerException {
 
 		checkInitialized();
+
+		if(State.PAUSED.equals(state) || State.STOPPED.equals(state)) {
+
+			mediaPlayer.play();
+
+			return;
+		}
 
 		currentlyPlayedSong = activePlaylist.getNextSong();
 
@@ -84,23 +93,29 @@ public final class AudioPlayerImpl implements AudioPlayer, AudioPlayerListener {
 			// Register callbacks.
 			mediaPlayer.setOnPlaying(() -> {
 
-				for(AudioPlayerListener audioPlayerListener : audioPlayerListeners) {
+				state = State.PLAYING;
+
+				for (AudioPlayerListener audioPlayerListener : audioPlayerListeners) {
 
 					audioPlayerListener.onStarted(currentlyPlayedSong);
 				}
+
 			});
 
 			mediaPlayer.setOnStopped(() -> {
 
-				for(AudioPlayerListener audioPlayerListener : audioPlayerListeners) {
+				state = State.STOPPED;
+
+				for (AudioPlayerListener audioPlayerListener : audioPlayerListeners) {
 
 					audioPlayerListener.onStopped(currentlyPlayedSong);
 				}
+
 			});
 
 			mediaPlayer.setOnHalted(() -> {
 
-				for(AudioPlayerListener audioPlayerListener : audioPlayerListeners) {
+				for (AudioPlayerListener audioPlayerListener : audioPlayerListeners) {
 
 					audioPlayerListener.onHalted(currentlyPlayedSong);
 				}
@@ -108,7 +123,9 @@ public final class AudioPlayerImpl implements AudioPlayer, AudioPlayerListener {
 
 			mediaPlayer.setOnPaused(() -> {
 
-				for(AudioPlayerListener audioPlayerListener : audioPlayerListeners) {
+				state = State.PAUSED;
+
+				for (AudioPlayerListener audioPlayerListener : audioPlayerListeners) {
 
 					audioPlayerListener.onPaused(currentlyPlayedSong);
 				}
@@ -116,7 +133,7 @@ public final class AudioPlayerImpl implements AudioPlayer, AudioPlayerListener {
 
 			mediaPlayer.setOnError(() -> {
 
-				for(AudioPlayerListener audioPlayerListener : audioPlayerListeners) {
+				for (AudioPlayerListener audioPlayerListener : audioPlayerListeners) {
 
 					audioPlayerListener.onError(currentlyPlayedSong);
 				}
@@ -124,7 +141,9 @@ public final class AudioPlayerImpl implements AudioPlayer, AudioPlayerListener {
 
 			mediaPlayer.setOnEndOfMedia(() -> {
 
-				for(AudioPlayerListener audioPlayerListener : audioPlayerListeners) {
+				// TODO: Set state and playlist.
+
+				for (AudioPlayerListener audioPlayerListener : audioPlayerListeners) {
 
 					audioPlayerListener.onSongEnded(currentlyPlayedSong);
 				}
@@ -155,20 +174,32 @@ public final class AudioPlayerImpl implements AudioPlayer, AudioPlayerListener {
 		audioPlayerListeners.remove(audioPlayerListener);
 	}
 
-	public void pause() throws AudioPlayerException {
+	public synchronized void pause() throws AudioPlayerException {
 
 		checkInitialized();
 
-		mediaPlayer.pause();
+		if(State.PLAYING.equals(state)) {
+
+			mediaPlayer.pause();
+		}
+
 	}
 
-	public void stop() throws AudioPlayerException {
+	public synchronized void stop() throws AudioPlayerException {
 
 		checkInitialized();
 
-		mediaPlayer.stop();
+		if(!State.STOPPED.equals(state)) {
+
+			mediaPlayer.stop();
+		}
+
 	}
 
+	public State getState() {
+
+		return state;
+	}
 
 	@Override
 	public void onPlaylistEnded() {
@@ -180,30 +211,35 @@ public final class AudioPlayerImpl implements AudioPlayer, AudioPlayerListener {
 	public void onStarted(Song song) {
 
 		LOGGER.info("Playing \""+song.getFile().getAbsolutePath()+"\"");
+		LOGGER.info("State: " + state);
 	}
 
 	@Override
 	public void onStopped(Song song) {
 
 		LOGGER.info("Stopped \""+song.getFile().getAbsolutePath()+"\"");
+		LOGGER.info("State: " + state);
 	}
 
 	@Override
 	public void onPaused(Song song) {
 
 		LOGGER.info("Paused \""+song.getFile().getAbsolutePath()+"\"");
+		LOGGER.info("State: " + state);
 	}
 
 	@Override
 	public void onHalted(Song song) {
 
 		LOGGER.info("Halted \""+song.getFile().getAbsolutePath()+"\"");
+		LOGGER.info("State: " + state);
 	}
 
 	@Override
 	public void onError(Song song) {
 
 		LOGGER.error("Error playing \"" + song.getFile().getAbsolutePath() + "\"");
+		LOGGER.info("State: " + state);
 	}
 
 	@Override

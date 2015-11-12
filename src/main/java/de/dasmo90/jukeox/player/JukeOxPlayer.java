@@ -7,6 +7,7 @@ import de.dasmo90.jukeox.player.model.exception.AudioPlayerException;
 import de.dasmo90.jukeox.player.model.impl.AudioPlayerCallback;
 import de.dasmo90.jukeox.player.model.impl.AudioPlayerProvider;
 import de.dasmo90.jukeox.player.model.impl.PlaylistImpl;
+import de.dasmo90.jukeox.player.ui.UI;
 import org.apache.log4j.Logger;
 
 import java.io.File;
@@ -26,15 +27,7 @@ public class JukeOxPlayer {
 	/**
 	 * A test audio player instance.
 	 */
-	private static AudioPlayer AUDIO_PLAYER = AudioPlayerProvider.getAudioPlayerInstance(new AudioPlayerCallback() {
-
-		@Override
-		public void onSongEnded(Song song) {
-
-			AudioPlayerProvider.shutdown();
-		}
-
-	});
+	private static AudioPlayer AUDIO_PLAYER = AudioPlayerProvider.getAudioPlayerInstance();
 	/**
 	 * Point of entry.
 	 *
@@ -43,6 +36,8 @@ public class JukeOxPlayer {
 	public static void main(String[] args) {
 
 		LOGGER.info("JukeOx Player started!");
+
+		UI.start();
 
 		AudioPlayerProvider.initialize(() -> {
 
@@ -57,7 +52,7 @@ public class JukeOxPlayer {
 									"test.mp3");
 				}
 			});
-
+			/*
 			try {
 
 				AUDIO_PLAYER.play();
@@ -66,7 +61,7 @@ public class JukeOxPlayer {
 
 				LOGGER.error("Error in main method.", e);
 			}
-
+			*/
 		});
 
 		LOGGER.info("JukeOx Player stopped.");
