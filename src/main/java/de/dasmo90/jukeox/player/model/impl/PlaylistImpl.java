@@ -22,7 +22,7 @@ public class PlaylistImpl implements Playlist {
 	}
 
 	@Override
-	public Song getNextSong() throws AudioPlayerException {
+	public Song getCurrentSong() throws AudioPlayerException {
 
 		if(currentIndex < songs.size()) {
 

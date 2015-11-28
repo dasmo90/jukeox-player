@@ -28,6 +28,7 @@ public class JukeOxPlayer {
 	 * A test audio player instance.
 	 */
 	private static AudioPlayer AUDIO_PLAYER = AudioPlayerProvider.getAudioPlayerInstance();
+
 	/**
 	 * Point of entry.
 	 *
@@ -44,7 +45,7 @@ public class JukeOxPlayer {
 			AUDIO_PLAYER.setPlaylist(new PlaylistImpl() {
 
 				@Override
-				public Song getNextSong() throws AudioPlayerException {
+				public Song getCurrentSong() throws AudioPlayerException {
 					return () -> new File(
 							"src" + File.separator +
 									"main" + File.separator +
@@ -52,16 +53,6 @@ public class JukeOxPlayer {
 									"test.mp3");
 				}
 			});
-			/*
-			try {
-
-				AUDIO_PLAYER.play();
-
-			} catch (AudioPlayerException e) {
-
-				LOGGER.error("Error in main method.", e);
-			}
-			*/
 		});
 
 		LOGGER.info("JukeOx Player stopped.");

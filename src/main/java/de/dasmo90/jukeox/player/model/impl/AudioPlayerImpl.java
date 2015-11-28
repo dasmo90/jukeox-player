@@ -25,7 +25,11 @@ public final class AudioPlayerImpl implements AudioPlayer, AudioPlayerListener {
 
 	private State state = null;
 
-	private Song currentlyPlayedSong;
+	private RepeatMode repeatMode = RepeatMode.NONE;
+
+	private ShuffleMode shuffleMode = ShuffleMode.NONE;
+
+	private Song currentSong;
 
 	private Set<AudioPlayerListener> audioPlayerListeners;
 
@@ -57,6 +61,11 @@ public final class AudioPlayerImpl implements AudioPlayer, AudioPlayerListener {
 					"Audio player not initialized. " +
 							"Please call \"AudioPlayerProvider.initialize\" and wait for the callback.");
 		}
+
+		if(activePlaylist == null) {
+
+			throw new AudioPlayerException("No playlist set to audio player.");
+		}
 	}
 
 	public synchronized void play() throws AudioPlayerException {
@@ -70,9 +79,9 @@ public final class AudioPlayerImpl implements AudioPlayer, AudioPlayerListener {
 			return;
 		}
 
-		currentlyPlayedSong = activePlaylist.getNextSong();
+		Song newCurrentSong = activePlaylist.getCurrentSong();
 
-		if(currentlyPlayedSong == null) {
+		if(newCurrentSong == null) {
 
 			for(AudioPlayerListener audioPlayerListener : audioPlayerListeners) {
 
@@ -82,7 +91,15 @@ public final class AudioPlayerImpl implements AudioPlayer, AudioPlayerListener {
 			return;
 		}
 
-		File soundFile = currentlyPlayedSong.getFile();
+		// if song was played before, play it again
+		if(mediaPlayer != null && newCurrentSong.equals(currentSong)) {
+
+			mediaPlayer.play();
+
+			return;
+		}
+
+		File soundFile = currentSong.getFile();
 
 		try {
 
@@ -97,7 +114,7 @@ public final class AudioPlayerImpl implements AudioPlayer, AudioPlayerListener {
 
 				for (AudioPlayerListener audioPlayerListener : audioPlayerListeners) {
 
-					audioPlayerListener.onStarted(currentlyPlayedSong);
+					audioPlayerListener.onStarted(currentSong);
 				}
 
 			});
@@ -108,7 +125,7 @@ public final class AudioPlayerImpl implements AudioPlayer, AudioPlayerListener {
 
 				for (AudioPlayerListener audioPlayerListener : audioPlayerListeners) {
 
-					audioPlayerListener.onStopped(currentlyPlayedSong);
+					audioPlayerListener.onStopped(currentSong);
 				}
 
 			});
@@ -117,7 +134,7 @@ public final class AudioPlayerImpl implements AudioPlayer, AudioPlayerListener {
 
 				for (AudioPlayerListener audioPlayerListener : audioPlayerListeners) {
 
-					audioPlayerListener.onHalted(currentlyPlayedSong);
+					audioPlayerListener.onHalted(currentSong);
 				}
 			});
 
@@ -127,7 +144,7 @@ public final class AudioPlayerImpl implements AudioPlayer, AudioPlayerListener {
 
 				for (AudioPlayerListener audioPlayerListener : audioPlayerListeners) {
 
-					audioPlayerListener.onPaused(currentlyPlayedSong);
+					audioPlayerListener.onPaused(currentSong);
 				}
 			});
 
@@ -135,7 +152,7 @@ public final class AudioPlayerImpl implements AudioPlayer, AudioPlayerListener {
 
 				for (AudioPlayerListener audioPlayerListener : audioPlayerListeners) {
 
-					audioPlayerListener.onError(currentlyPlayedSong);
+					audioPlayerListener.onError(currentSong);
 				}
 			});
 
@@ -145,7 +162,7 @@ public final class AudioPlayerImpl implements AudioPlayer, AudioPlayerListener {
 
 				for (AudioPlayerListener audioPlayerListener : audioPlayerListeners) {
 
-					audioPlayerListener.onSongEnded(currentlyPlayedSong);
+					audioPlayerListener.onSongEnded(currentSong);
 				}
 			});
 

@@ -24,4 +24,12 @@ public interface AudioPlayer {
 	enum State {
 		PLAYING, PAUSED, STOPPED
 	}
+
+	enum RepeatMode {
+		NONE, PLAYLIST, SONG
+	}
+
+	enum ShuffleMode {
+		NONE, REVERSE, SHUFFLE, RANDOM
+	}
 }
